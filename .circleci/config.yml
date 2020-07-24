@@ -1,0 +1,33 @@
+version: 2.1
+orbs:
+  node: circleci/node@1.1.6
+  aws-cli: circleci/aws-cli@1.2.0
+jobs:
+  test:
+    executor:
+      name: node/default
+    steps:
+      - checkout
+      - node/with-cache:
+          steps:
+            - run: npm install
+            - run: make typecheck
+            - run: make lint
+            - run: make test
+  deploy:
+    executor: aws-cli/default
+    steps:
+      - checkout
+      - aws-cli/install
+      - run: npm install
+      - run: make build
+      - run: make zip
+      - run: make deploy
+
+workflows:
+  default:
+    jobs:
+      - test
+      - deploy:
+          requires:
+            - test
